@@ -81,16 +81,27 @@ def print_welcome_message():
     console.print("Type '/help' for list of available commands.", style=f"{app_color}")
     console.print("" + "*" * 56 + "\n", style=f"{app_color}")
 
-def upgrade_config(config):
+def upgrade_config():
+    # Read the default and user config files
     default_config = configparser.ConfigParser()
-    default_config.read('user_config.default.ini')
-    
+    default_config.read(default_config_path)
+
+    user_config = configparser.ConfigParser()
+    user_config.read(user_config_path)
+
+    changes_made = False
+
+    # Update user_config with new values from default_config
     for section in default_config.sections():
-        if section not in config.sections():
-            config[section] = {}
+        if section not in user_config:
+            user_config[section] = {}
+            changes_made = True
         for key, value in default_config[section].items():
-            if key not in config[section]:
-                config[section][key] = value
-    
-    with open('user_config.ini', 'w') as configfile:
-        config.write(configfile)
+            if key not in user_config[section]:
+                user_config[section][key] = value
+                changes_made = True
+
+    if changes_made:
+        # Write the updated user config back to the file
+        with open(user_config_path, 'w') as config_file:
+            user_config.write(config_file)

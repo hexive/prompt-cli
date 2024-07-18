@@ -41,6 +41,11 @@ def generate_image(documents, number):
     prompt_number = number-1
     prompt = prompt[prompt_number]
 
+    #get some config settings
+    gen_img_width=config('image','gen_img_width',int)
+    gen_img_height=config('image','gen_img_height',int)
+
+
     # Define the URL and the payload to send.
     img_url = config('image','image-gen_url')
 
@@ -53,8 +58,8 @@ def generate_image(documents, number):
         "sampler_name":"DPM++ 2M",
         "scheduler": "Automatic",
         "steps":30,
-        "width":1024,
-        "height":1024,
+        "width":gen_img_width,
+        "height":gen_img_height,
         "save_images": config('image','save_images_api',bool)
     }
 
@@ -88,7 +93,10 @@ def generate_image(documents, number):
             f.write(base64.b64decode(r['images'][0]))
 
         #resize XL images to fit in screen better
-        subprocess.run(["convert", file_path, "-resize", "1024x786>", thumb_path])
+        thumb_img_max_width=config('image','thumb_img_max_width',int)
+        thum_img_max_height=config('image','thum_img_max_height',int)
+
+        subprocess.run(["convert", file_path, "-resize", f"{thumb_img_max_width}x{thum_img_max_height}>", thumb_path])
 
         # Write image to console
         subprocess.run(["kitty", "icat", thumb_path])
