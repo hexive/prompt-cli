@@ -17,7 +17,7 @@ CMAKE_ARGS="-DGGML_CUDA=on" pip install llama-cpp-python
 pip install qdrant-client transformers torch rich prompt_toolkit
 
 # "--downloading models if they don't exist"
-python models/_model_downloader.py
+python scripts/_model_downloader.py
 
 echo "*********************************"
 echo "done. use start_linux.sh to begin"
