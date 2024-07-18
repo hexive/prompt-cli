@@ -19,9 +19,7 @@ def prepare_image(documents, number):
         # verify there are some search results
         try:
             len(documents['result'])
-            #return generate_image(documents, number)
-            with console.status("\nGenerating diffusion image ..."):
-                return generate_image(documents, number)
+            return generate_image(documents, number)
         except Exception as e:
             console.print(f"\nSomething went wrong. The error shown is:\n--{e}", style=f"{error_color}")
             #console.print("--try a /search first?\n", style=f"{error_color}")
@@ -68,8 +66,9 @@ def generate_image(documents, number):
 #    response = requests.post(url=f'{url}/sdapi/v1/options', json=option_payload)
    
     # Send payload to URL through the API.
-    response = requests.post(url=f'{img_url}/sdapi/v1/txt2img', json=payload)
-    r = response.json()
+    with console.status("\nGenerating diffusion image ..."):
+        response = requests.post(url=f'{img_url}/sdapi/v1/txt2img', json=payload)
+        r = response.json()
 
     if r.get('error') and r['error'].strip():
         console.print(f"\nSomething went wrong. The error shown is:\n--{r['error']}\n", style=f"{error_color}")
@@ -91,6 +90,6 @@ def generate_image(documents, number):
         #resize XL images to fit in screen better
         subprocess.run(["convert", file_path, "-resize", "1024x786>", thumb_path])
 
-        # Write image to kitty console
+        # Write image to console
         subprocess.run(["kitty", "icat", thumb_path])
         console.print(f"{number}. {prompt}", style=f"{search_color}")
