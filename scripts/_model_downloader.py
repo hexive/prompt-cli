@@ -19,16 +19,18 @@ def download_file(url, filename):
             size = file.write(data)
             progress_bar.update(size)
 
+# install path
+install_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
 # grab the encode model
-encode_model_path = os.path.dirname(os.path.realpath(__file__)) + "/BAII/model.safetensors"
+encode_model_path = install_path + "/models/BAII/model.safetensors"
 if os.path.exists(encode_model_path):
 	print("encoding model already exists. skipping.")
 else:
 	print("--downloading encoding model (~440 MB)")
 	model_name="BAAI/bge-base-en-v1.5"
 	#save_directory="BAII"
-	save_directory=os.path.dirname(os.path.realpath(__file__)) + "/BAII/"
+	save_directory=install_path + "/models/BAII/"
 
 	# Download and save the tokenizer
 	tokenizer = AutoTokenizer.from_pretrained(model_name)
@@ -41,7 +43,7 @@ else:
 	print("encoding model has downloaded")
 
 # grab the llm model
-llm_model_path = os.path.dirname(os.path.realpath(__file__)) + "/Mistral-7B-Instruct-v0.3-Q6_K.gguf"
+llm_model_path = install_path + "/models/Mistral-7B-Instruct-v0.3-Q6_K.gguf"
 if os.path.exists(llm_model_path):
 	print("llm model already exists. skipping.")
 else:
