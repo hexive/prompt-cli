@@ -1,0 +1,19 @@
+NOTICE
+
+Prompt-cli and all contents of this repo are a derivative work
+of prompt quill https://github.com/osi1880vr/prompt_quill
+
+Original Copyright 2023 osiworx
+
+Original and this licensed under the Apache License, Version 2.0
+http://www.apache.org/licenses/LICENSE-2.0
+
+UNMODIFIED USE:
+prompt_large_meta snapshot from:
+https://civitai.com/models/330412/prompt-quill-vector-data
+
+MODIFIED USE:
+a function to add filters to qdrant:
+pg/llama_index_interface.py get_context_filter():
+used here at:
+app/search.py get_context_filter():
