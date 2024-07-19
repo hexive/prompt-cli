@@ -21,6 +21,7 @@ def print_help_message():
     console.print("'/1': Generate image from number prompt (/1,/54,etc)", style=f"{app_color}")
     console.print("'/random': Generate random image from search results", style=f"{app_color}")
     console.print("'/new': Llama creates a new prompt based on context of search", style=f"{app_color}")
+    console.print("'/load': List and load new image checkpoint models", style=f"{app_color}")    
 
     console.print("\nSystem:", style=f"bold {app_color}")
     console.print("'/quit': Exit the program", style=f"{app_color}")
@@ -36,6 +37,7 @@ class Command(Enum):
     EXIT = auto()
     FILTER = auto()
     HELP = auto()
+    LOAD = auto()
     MORE = auto()
     NEW = auto()
     NUMERIC = auto()
@@ -50,6 +52,7 @@ COMMAND_MAPPINGS = {
     'exit': (['/bye', '/b', '/q', '/quit', '/e', '/exit'], Command.EXIT),
     'filter': (['/filter', '/f'], Command.FILTER),
     'help': (['/help', '/h'], Command.HELP),
+    'load': (['/load', '/l'], Command.LOAD),
     'more': (['/more', '/m'], Command.MORE),
     'new': (['/new', '/n'], Command.NEW),
     'page': (['/page', '/p'], Command.PAGE),
@@ -67,6 +70,16 @@ def handle_special_commands(user_input):
                 if command_enum == Command.FILTER:
                     keywords = user_input[len(alias):].strip()
                     return command_enum, keywords
+                elif command_enum == Command.LOAD:
+                    args = lower_input[len(alias):].strip()
+                    if args:
+                        try:
+                            model_number = int(args)
+                            return command_enum, model_number
+                        except ValueError:
+                            return Command.UNKNOWN
+                    else:
+                        return command_enum, None
                 elif command_enum == Command.PAGE:
                     try:
                         page_number = int(user_input[len(alias):].strip())
@@ -118,6 +131,12 @@ def interactive_chat():
                 current_page = 1
                 documents = search.search_prompts(prompt_text, filter_text, neural_searcher)
                 search.print_results(documents, prompt_text, filter_text, page=current_page)
+            elif command[0] == Command.LOAD:
+                command_type, model_number = command
+                if model_number is not None:
+                    image.change_model(model_number)
+                else:
+                    image.list_models()
             elif command[0] == Command.PAGE:
                 command_type, page_number = command
                 #check for valid page number in results range

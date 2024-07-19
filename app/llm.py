@@ -2,6 +2,7 @@ import os
 import torch
 from llama_cpp import Llama
 from search import result_check
+from transformers import AutoTokenizer
 from util import *
 
 
@@ -40,6 +41,17 @@ def prepare_response(documents, query):
     with console.status("\nLlama is now analyzing full context..."):
         return generate_response(documents, query)
 
+def estimate_tokens(text: str) -> int:
+    return len(text) // 4  # assume 4 char per token
+
+def trim(text: str):
+
+    chars_to_keep = (config('llm','n_ctx', int) * 2.5)
+    chars_to_keep = round(chars_to_keep)
+    trimmed_text = text[:chars_to_keep]
+    
+    return trimmed_text
+
 def get_model():
     global llama
     if llama is None:
@@ -57,8 +69,17 @@ def get_model():
 
 def generate_response(documents, query):
     documents = documents['result']
+
     context = "\n".join(documents)
+    if config('ui','debug',bool):print(f"context tokens pre: {estimate_tokens(text=context)}")
+    if config('ui','debug',bool):print(f"from config: {config('llm','n_ctx', int)}")
+    if estimate_tokens(text=context) > config('llm','n_ctx', int):
+        context = trim(context)
+        if config('ui','debug',bool):print(f"context tokens post: {estimate_tokens(text=context)}")
+
     prompt = f"Context:\n{context}\n\nQuery: {query}\n\nAnswer:"
+    if config('ui','debug',bool): print(f"final prompt: {estimate_tokens(text=prompt)}")
+    
     response = llama(prompt, max_tokens=350)
     return response['choices'][0]['text'].strip()
 

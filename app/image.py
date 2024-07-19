@@ -12,6 +12,62 @@ from util import *
 #####################  IMAGES  ########################
 #######################################################
 
+def list_models():
+
+    # Define the URL and the payload to send.
+    img_url = config('image','image-gen_url')
+
+    response = requests.get(url=f'{img_url}/sdapi/v1/sd-models')
+    models = response.json()
+
+    # Get the currently loaded model
+    response = requests.get(url=f'{img_url}/sdapi/v1/options')
+    options = response.json()
+
+    current_model = options['sd_model_checkpoint']
+
+    console.print(f"\nCurrently loaded model: ",style=f"bold {app_color}")
+    console.print(f"'{current_model}'",style=f"{app_color}")
+
+    console.print("\nAvailable models:",style=f"bold {app_color}")
+
+    for i, model in enumerate(models):
+        if model['title'] == current_model:
+            console.print(f"{i+1}. '{model['title']}'",style=f"{app_color}")
+        else:
+            console.print(f"{i+1}. {model['title']}",style=f"{app_color}")
+
+    console.print(f"\nTo change enter '/load 3', for example.\n",style=f"{app_color}")
+
+def change_model(number):
+    img_url = config('image','image-gen_url')
+
+    #get models again
+    response = requests.get(url=f'{img_url}/sdapi/v1/sd-models')
+    models = response.json()
+
+    choice = number - 1
+    if 0 <= choice < len(models):
+        new_model = models[choice]['title']
+
+        option_payload = {
+        "sd_model_checkpoint": new_model
+        }
+
+        with console.status("\nLoading new image model ..."):
+            response = requests.post(url=f'{img_url}/sdapi/v1/options', json=option_payload)
+            
+        
+        if response.status_code == 200:
+            console.print("\nSuccess! the new image model is loaded.\n",style=f"")
+            #validatw with ne?
+        else:
+            console.print(f"\nSomething went wrong with the model change. Try again?\n", style=f"{error_color}")
+    else:
+        console.print("\nINVALID! I really question your choices sometimes.\n", style=f"{error_color}")
+
+ 
+
 def prepare_image(documents, number=None, llm_prompt=None):
     # verify automatic1111 is up  
     url = config('image','image-gen_url') + "/docs"
@@ -21,13 +77,14 @@ def prepare_image(documents, number=None, llm_prompt=None):
             len(documents['result'])
             return generate_image(documents, number, llm_prompt)
         except Exception as e:
-            console.print(f"\nSomething went wrong. The error shown is:\n--{e}\n", style=f"{error_color}")
-            #console.print("--try a /search first?\n", style=f"{error_color}")
-            # on for debug?
-            import traceback
-            console.print(f"--Traceback says: ", style=f"bold {error_color}")
-            traceback.print_exc()
-            console.print("\n\n")
+            console.print(f"\nSomething went wrong:", style=f"{error_color}")
+            console.print("--maybe try a /search first?\n", style=f"{error_color}")
+            # on for debug? wrap this in a def for all excepts?
+            #import traceback
+            #console.print(f"\n-the exception error shown is:\n--{e}\n", style=f"{error_color}")
+            #console.print(f"--Traceback says: ", style=f"bold {error_color}")
+            #traceback.print_exc()
+            #console.print("\n\n")
     else:
         console.print("\noops, did you forget to start stable diffusion?\n--fire that up before you try again\n", style=f"bold {error_color}")
 
@@ -45,8 +102,6 @@ def generate_image(documents, number, llm_prompt):
         prompt = documents['result']
         prompt_number = number-1
         prompt = prompt[prompt_number]
-
-
 
 
     #get some config settings
