@@ -12,15 +12,15 @@ def print_help_message():
     console.print("'/search': Search for prompts (default mode)", style=f"{app_color}")  
     console.print("'/chat': Chat with Llama about the search results", style=f"{app_color}")
 
-
     console.print("\nSearch functions:", style=f"bold {app_color}")
     console.print("'/more': Next page in search results", style=f"{app_color}")
     console.print("'/page 4': Go to any specific page in results", style=f"{app_color}")
     console.print("'/filter your keywords, more': Filter search results (blank to remove)", style=f"{app_color}")
 
     console.print("\nImage functions:", style=f"bold {app_color}")
-    console.print("'/1': Generate image from numbe{error_color} prompt (/1,/54,etc)", style=f"{app_color}")
-    console.print("'/random': Generate random image from results", style=f"{app_color}")
+    console.print("'/1': Generate image from number prompt (/1,/54,etc)", style=f"{app_color}")
+    console.print("'/random': Generate random image from search results", style=f"{app_color}")
+    console.print("'/new': Llama creates a new prompt based on context of search", style=f"{app_color}")
 
     console.print("\nSystem:", style=f"bold {app_color}")
     console.print("'/quit': Exit the program", style=f"{app_color}")
@@ -37,6 +37,7 @@ class Command(Enum):
     FILTER = auto()
     HELP = auto()
     MORE = auto()
+    NEW = auto()
     NUMERIC = auto()
     PAGE = auto()
     RANDOM = auto()
@@ -50,6 +51,7 @@ COMMAND_MAPPINGS = {
     'filter': (['/filter', '/f'], Command.FILTER),
     'help': (['/help', '/h'], Command.HELP),
     'more': (['/more', '/m'], Command.MORE),
+    'new': (['/new', '/n'], Command.NEW),
     'page': (['/page', '/p'], Command.PAGE),
     'random': (['/random', '/r'], Command.RANDOM),
     'wipe': (['/wipe', '/w'], Command.WIPE),
@@ -108,7 +110,7 @@ def interactive_chat():
         if isinstance(command, tuple):
             if command[0] == Command.NUMERIC:
                 command_type, number = command
-                image.prepare_image(documents, number)
+                image.prepare_image(documents, number=number)
             elif command[0] == Command.FILTER:
                 command_type, keywords = command
                 filter_text = keywords
@@ -138,12 +140,20 @@ def interactive_chat():
             current_page += 1
             search.print_results(documents, prompt_text, filter_text, page=current_page)
 
+        elif command == Command.NEW:
+            if llm.preflight(documents):
+                query = config('llm','image_prompt')
+                response = llm.prepare_response(documents, query)
+                #llm.print_response(response)
+                llm_prompt = response
+                image.prepare_image(documents,llm_prompt=llm_prompt)
+
         elif command == Command.HELP:
             print_help_message()
 
         elif command == Command.RANDOM:
             number = 9999
-            image.prepare_image(documents, number)
+            image.prepare_image(documents, number=number)
 
         elif command == Command.SEARCH:
             ask_loop = False
@@ -161,6 +171,7 @@ def interactive_chat():
                 query = user_input
                 response = llm.prepare_response(documents, query)
                 llm.print_response(response)
+
             else:
                 prompt_text = user_input
                 current_page = 1
