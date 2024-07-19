@@ -88,7 +88,6 @@ def interactive_chat():
     os.system('cls' if os.name == 'nt' else 'clear')
     preflight()
     print_welcome_message()
-    upgrade_config()
     documents = []
     current_page = 1
     prompt_text = ""

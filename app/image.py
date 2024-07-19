@@ -101,3 +101,7 @@ def generate_image(documents, number):
         # Write image to console
         subprocess.run(["kitty", "icat", thumb_path])
         console.print(f"{number}. {prompt}", style=f"{search_color}")
+
+        # Remove thumb
+        if os.path.isfile(thumb_path):
+            os.remove(thumb_path) 
