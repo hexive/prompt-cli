@@ -12,34 +12,42 @@ from util import *
 #####################  IMAGES  ########################
 #######################################################
 
-def prepare_image(documents, number):
+def prepare_image(documents, number=None, llm_prompt=None):
     # verify automatic1111 is up  
     url = config('image','image-gen_url') + "/docs"
     if check_service(url):
         # verify there are some search results
         try:
             len(documents['result'])
-            return generate_image(documents, number)
+            return generate_image(documents, number, llm_prompt)
         except Exception as e:
-            console.print(f"\nSomething went wrong. The error shown is:\n--{e}", style=f"{error_color}")
+            console.print(f"\nSomething went wrong. The error shown is:\n--{e}\n", style=f"{error_color}")
             #console.print("--try a /search first?\n", style=f"{error_color}")
             # on for debug?
-            #import traceback
-            #console.print(f"--Traceback says: ", style=f"bold {error_color}")
-            #traceback.print_exc()
-            #console.print("\n\n")
+            import traceback
+            console.print(f"--Traceback says: ", style=f"bold {error_color}")
+            traceback.print_exc()
+            console.print("\n\n")
     else:
         console.print("\noops, did you forget to start stable diffusion?\n--fire that up before you try again\n", style=f"bold {error_color}")
 
-def generate_image(documents, number):
-    # randomize prompt for /r RANDOM
-    if number==9999:
-        top_range = len(documents['result'])
-        number = random.randrange(1, top_range)
+def generate_image(documents, number, llm_prompt):
 
-    prompt = documents['result']
-    prompt_number = number-1
-    prompt = prompt[prompt_number]
+    # ugly work-around for llm prompt
+    if llm_prompt is not None:
+        prompt = llm_prompt
+    else:
+        # randomize prompt for /r RANDOM
+        if number==9999:
+            top_range = len(documents['result'])
+            number = random.randrange(1, top_range)
+
+        prompt = documents['result']
+        prompt_number = number-1
+        prompt = prompt[prompt_number]
+
+
+
 
     #get some config settings
     gen_img_width=config('image','gen_img_width',int)
@@ -100,7 +108,12 @@ def generate_image(documents, number):
 
         # Write image to console
         subprocess.run(["kitty", "icat", thumb_path])
-        console.print(f"{number}. {prompt}", style=f"{search_color}")
+        
+
+        if llm_prompt is not None:
+            console.print(f"From llama: {prompt}", style=f"{llm_color}")
+        else:
+            console.print(f"{number}. {prompt}", style=f"{search_color}")
 
         # Remove thumb
         if os.path.isfile(thumb_path):
