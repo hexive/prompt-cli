@@ -29,7 +29,6 @@ def preflight(documents):
             #traceback.print_exc()
             #console.print("\n\n")
             return False
-            #sys.exit()
 
     # are there documents to chat with?
     if not result_check(documents):
@@ -39,10 +38,16 @@ def preflight(documents):
 
 def prepare_response(documents, query):
     with console.status("\nLlama is now analyzing full context..."):
-        return generate_response(documents, query)
+        try:
+            return generate_response(documents, query)
+        except Exception as e:
+            console.print("\nSomething went wrong. Error returned is:", style=f"{error_color}")
+            console.print(f"--{e}\n", style=f"{error_color}")
+            return False
+        
 
 def estimate_tokens(text: str) -> int:
-    return len(text) // 4  # assume 4 char per token
+    return len(text) // 3.5  # 4 char per token ? 3.5
 
 def trim(text: str):
 
@@ -82,6 +87,7 @@ def generate_response(documents, query):
     
     response = llama(prompt, max_tokens=350)
     return response['choices'][0]['text'].strip()
+    
 
 def print_response(response):
     console.print("\nLlama Response:\n", style=f"bold {llm_color}")

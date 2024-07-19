@@ -118,6 +118,10 @@ def interactive_chat():
             user_input = session.prompt("Chat with Llama about the results: ", style=style_llm)
         else:
             user_input = session.prompt("Enter new search terms or another command: ", style=style_search)
+        
+        user_input = user_input.strip()
+        if not user_input:
+            continue
 
         command = handle_special_commands(user_input)
         
@@ -165,8 +169,9 @@ def interactive_chat():
                 query = config('llm','image_prompt')
                 response = llm.prepare_response(documents, query)
                 #llm.print_response(response)
-                llm_prompt = response
-                image.prepare_image(documents,llm_prompt=llm_prompt)
+                if response is not False: 
+                    llm_prompt = response
+                    image.prepare_image(documents,llm_prompt=llm_prompt)
 
         elif command == Command.HELP:
             print_help_message()
@@ -197,7 +202,6 @@ def interactive_chat():
                 current_page = 1
                 documents = search.search_prompts(prompt_text, filter_text, neural_searcher)
                 search.print_results(documents, prompt_text, filter_text, page=current_page)
-
 
     return True
 
