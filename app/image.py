@@ -166,9 +166,9 @@ def generate_image(documents, number, llm_prompt):
         
 
         if llm_prompt is not None:
-            console.print(f"From llama: {prompt}", style=f"{llm_color}")
+            console.print(f"From Llama: {prompt}\n", style=f"{llm_color}")
         else:
-            console.print(f"{number}. {prompt}", style=f"{search_color}")
+            console.print(f"{number}. {prompt}\n", style=f"{search_color}")
 
         # Remove thumb
         if os.path.isfile(thumb_path):
