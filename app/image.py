@@ -154,7 +154,7 @@ def generate_image(documents, number, llm_prompt):
         thumb_img_max_width=config('image','thumb_img_max_width',int)
         thum_img_max_height=config('image','thum_img_max_height',int)
 
-        subprocess.run(["convert", file_path, "-resize", f"{thumb_img_max_width}x{thum_img_max_height}>", thumb_path])
+        subprocess.run(["convert", file_path, "-quiet", "-resize", f"{thumb_img_max_width}x{thum_img_max_height}>", thumb_path])
 
         # Write image to console
         subprocess.run(["kitty", "icat", thumb_path])
