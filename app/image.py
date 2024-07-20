@@ -78,13 +78,8 @@ def prepare_image(documents, number=None, llm_prompt=None):
             return generate_image(documents, number, llm_prompt)
         except Exception as e:
             console.print(f"\nSomething went wrong:", style=f"{error_color}")
-            console.print("--maybe try a /search first?\n", style=f"{error_color}")
-            # on for debug? wrap this in a def for all excepts?
-            #import traceback
-            #console.print(f"\n-the exception error shown is:\n--{e}\n", style=f"{error_color}")
-            #console.print(f"--Traceback says: ", style=f"bold {error_color}")
-            #traceback.print_exc()
-            #console.print("\n\n")
+            console.print("--maybe try a /search first?", style=f"{error_color}")
+            print_error(e)
     else:
         console.print("\noops, did you forget to start stable diffusion?\n--fire that up before you try again\n", style=f"bold {error_color}")
 
@@ -159,7 +154,7 @@ def generate_image(documents, number, llm_prompt):
         thumb_img_max_width=config('image','thumb_img_max_width',int)
         thum_img_max_height=config('image','thum_img_max_height',int)
 
-        subprocess.run(["convert", file_path, "-resize", f"{thumb_img_max_width}x{thum_img_max_height}>", thumb_path])
+        subprocess.run(["convert", file_path, "-quiet", "-resize", f"{thumb_img_max_width}x{thum_img_max_height}>", thumb_path])
 
         # Write image to console
         subprocess.run(["kitty", "icat", thumb_path])

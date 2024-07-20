@@ -81,6 +81,15 @@ def print_welcome_message():
     console.print("Type '/help' for list of available commands.", style=f"{app_color}")
     console.print("" + "*" * 56 + "\n", style=f"{app_color}")
 
+def print_error(e):
+    if config('ui','debug',bool):
+        console.print(f"--the error shown is: {e}", style=f"{error_color}")
+        import traceback
+        console.print(f"--Traceback says: ", style=f"bold {error_color}")
+        traceback.print_exc()
+        console.print("\n")
+    console.print("\n")
+
 def upgrade_config():
     # Read the default and user config files
     default_config = configparser.ConfigParser()

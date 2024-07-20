@@ -20,12 +20,12 @@ def print_help_message():
     console.print("\nImage functions:", style=f"bold {app_color}")
     console.print("'/1': Generate image from number prompt (/1,/54,etc)", style=f"{app_color}")
     console.print("'/random': Generate random image from search results", style=f"{app_color}")
-    console.print("'/new': Llama creates a new prompt based on context of search", style=f"{app_color}")
-    console.print("'/load': List and load new image checkpoint models", style=f"{app_color}")    
+    console.print("'/new': Llama creates a new prompt based on search", style=f"{app_color}")
+    console.print("'/load': List and load image checkpoint models", style=f"{app_color}")    
 
     console.print("\nSystem:", style=f"bold {app_color}")
     console.print("'/quit': Exit the program", style=f"{app_color}")
-    console.print("'/wipe': Clear the screen", style=f"{app_color}")
+    console.print("'/wipe': Wipe (clear) the screen", style=f"{app_color}")
     console.print("'/help': Show this help message", style=f"{app_color}")
 
     console.print("\nNOTE: all of these commands may be shortened to one letter.\n\n", style=f"bold {app_color}")
@@ -168,7 +168,6 @@ def interactive_chat():
             if llm.preflight(documents):
                 query = config('llm','image_prompt')
                 response = llm.prepare_response(documents, query)
-                #llm.print_response(response)
                 if response is not False: 
                     llm_prompt = response
                     image.prepare_image(documents,llm_prompt=llm_prompt)
@@ -195,7 +194,8 @@ def interactive_chat():
             if ask_loop:
                 query = user_input
                 response = llm.prepare_response(documents, query)
-                llm.print_response(response)
+                if response is not False: 
+                    llm.print_response(response)
 
             else:
                 prompt_text = user_input
