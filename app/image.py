@@ -120,13 +120,6 @@ def generate_image(documents, number, llm_prompt):
         "height":gen_img_height,
         "save_images": config('image','save_images_api',bool)
     }
-
-#   #SETTING CHECKPOINT only do once?
-#    option_payload = {
-#        "sd_model_checkpoint": "Anything-V3.0-pruned",
-#        "CLIP_stop_at_last_layers": 2
-#        }
-#    response = requests.post(url=f'{url}/sdapi/v1/options', json=option_payload)
    
     # Send payload to URL through the API.
     with console.status("\nGenerating diffusion image ..."):
