@@ -22,12 +22,8 @@ def preflight(documents):
                 llama = get_model()
         except Exception as e:
             console.print("\nError loading llama.cpp", style=f"{error_color}")
-            console.print(f"--{e}\n--set 'verbose=True' in user_config.ini & rerun for details\n--you may continue with search & image generation.", style=f"{error_color}")
-            # on for debug?
-            #import traceback
-            #console.print(f"--Traceback says: ", style=f"bold {error_color}")
-            #traceback.print_exc()
-            #console.print("\n\n")
+            console.print(f"--try again with 'verbose=true' and 'debug=true' in user_config.ini", style=f"{error_color}")
+            print_error(e)
             return False
 
     # are there documents to chat with?
@@ -41,8 +37,9 @@ def prepare_response(documents, query):
         try:
             return generate_response(documents, query)
         except Exception as e:
-            console.print("\nSomething went wrong. Error returned is:", style=f"{error_color}")
-            console.print(f"--{e}\n", style=f"{error_color}")
+            console.print("\nOops something went wrong preparing Llama's response.", style=f"{error_color}")
+            console.print(f"--if error continues 'debug=true' in user_config.ini for details", style=f"{error_color}")
+            print_error(e)
             return False
         
 

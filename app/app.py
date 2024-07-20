@@ -168,7 +168,6 @@ def interactive_chat():
             if llm.preflight(documents):
                 query = config('llm','image_prompt')
                 response = llm.prepare_response(documents, query)
-                #llm.print_response(response)
                 if response is not False: 
                     llm_prompt = response
                     image.prepare_image(documents,llm_prompt=llm_prompt)
@@ -195,7 +194,8 @@ def interactive_chat():
             if ask_loop:
                 query = user_input
                 response = llm.prepare_response(documents, query)
-                llm.print_response(response)
+                if response is not False: 
+                    llm.print_response(response)
 
             else:
                 prompt_text = user_input
