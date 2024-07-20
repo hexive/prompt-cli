@@ -1,22 +1,23 @@
 #!/usr/bin/env bash
-# "Starting prompt-cli installer"
+echo "Starting prompt-cli installer/updater"
 
 
 cd "$(dirname "${BASH_SOURCE[0]}")"
 
-# "--creating venv environment"
-python3 -m venv .venv
+if [[ -f .venv/bin/activate ]]
+    then
+	echo "--found venv environment - activating"
+        source .venv/bin/activate
+    else
+        echo "--creating venv environment"
+	python3 -m venv .venv
+	source .venv/bin/activate
+    fi
 
-# "--using venv environment" 
-source .venv/bin/activate 
-
-# "--building llama cpp with cuda for GPU support" 
 CMAKE_ARGS="-DGGML_CUDA=on" pip install llama-cpp-python
 
-# "--installng some python dependencies" 
 pip install qdrant-client transformers torch rich prompt_toolkit
 
-# "--downloading models if they don't exist"
 python scripts/_model_downloader.py
 
 echo "*********************************"
