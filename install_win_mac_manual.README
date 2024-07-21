@@ -1,0 +1,39 @@
+For installation on other GPU/CPU configurations than I have (NVIDIA) or for Windows / Mac the **manual install** is just a few steps (you may need to adjust commands slightly to adapt to your os):
+
+Create a venv:  
+`python -m venv .venv`
+
+Source the new venv:  
+`source .venv/bin/activate`
+
+Install llama-cpp-python with the CMAKE_ARGSS that best fit your GPU/CPU setup:  
+`CMAKE_ARGS=-DGGML_CUDA=on`  
+`pip install llama-cpp-python`
+
+Install rest of requirements:  
+`pip install qdrant-client transformers torch rich prompt_toolkit`
+
+This is the model downloader script. It grabs the llm model and the text encoder:  
+`python scripts/_model_downloader.py`
+
+The end. Get started with:  
+`python app/app.py`
+
+To run it later just navigate to the directory and:  
+`source .venv/bin/activate`  
+`python app/app.py`
+
+## Config
+
+There are some user config options in user_config.ini
+The user_config.ini will be created on first run. 
+ConfigParser() overwrites comments so the details of the options are here for now:
+https://github.com/hexive/prompt-cli/wiki/config
+
+
+* autostart qdrant and stable diffusion
+* image-gen / save pics / set sizes / etc
+* color options to make ui pretty
+* blocklist to tame the NSFW/NSFL from a public dataset
+* adjust llama.cpp settings for the llm
+* more
