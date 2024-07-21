@@ -99,12 +99,7 @@ def generate_image(documents, number, llm_prompt):
         prompt = prompt[prompt_number]
 
 
-    #get some config settings
-    gen_img_width=config('image','gen_img_width',int)
-    gen_img_height=config('image','gen_img_height',int)
-
-
-    # Define the URL and the payload to send.
+    # from config define the URL and the payload to send.
     img_url = config('image','image-gen_url')
 
     payload = {
@@ -113,11 +108,11 @@ def generate_image(documents, number, llm_prompt):
         "seed":-1,
         "cfg_scale":5,
         "steps": 30,
-        "sampler_name":"DPM++ 2M",
+        "sampler_name":config('image','sampler_name'),
         "scheduler": "Automatic",
         "steps":30,
-        "width":gen_img_width,
-        "height":gen_img_height,
+        "width":config('image','gen_img_width',int),
+        "height":config('image','gen_img_height',int),
         "save_images": config('image','save_images_api',bool)
     }
    
