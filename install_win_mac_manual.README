@@ -11,7 +11,7 @@ Install llama-cpp-python with the CMAKE_ARGSS that best fit your GPU/CPU setup:
 `pip install llama-cpp-python`
 
 Install rest of requirements:  
-`pip install qdrant-client transformers torch rich prompt_toolkit`
+`pip install qdrant-client transformers torch rich prompt_toolkit sentencepiece`
 
 This is the model downloader script. It grabs the llm model and the text encoder:  
 `python scripts/_model_downloader.py`
