@@ -16,7 +16,7 @@ if [[ -f .venv/bin/activate ]]
 
 CMAKE_ARGS="-DGGML_CUDA=on" pip install llama-cpp-python
 
-pip install qdrant-client transformers torch rich prompt_toolkit
+pip install qdrant-client transformers torch rich prompt_toolkit sentencepiece
 
 python scripts/_model_downloader.py
 
