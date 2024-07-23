@@ -4,6 +4,8 @@ import image
 import search
 import llm
 
+from config import *
+
 from preflight import preflight
 from util import *
 
@@ -100,10 +102,11 @@ def handle_special_commands(user_input):
 #######################################################
 
 def interactive_chat():
+    sync_comments_config()
+
     os.system('cls' if os.name == 'nt' else 'clear')
     preflight()
     print_welcome_message()
-    upgrade_config()
     documents = []
     current_page = 1
     prompt_text = ""

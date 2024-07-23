@@ -9,59 +9,10 @@ from prompt_toolkit import PromptSession
 from prompt_toolkit.history import InMemoryHistory
 from prompt_toolkit.styles import Style
 
-#initialize rich console
-console = Console()
 
-#initialize prompt toolkit
-session = PromptSession(history=InMemoryHistory())
-
-def print_config(config):
-    for section in config.sections():
-        print(f"[{section}]")
-        for key, value in config.items(section):
-            print(f"{key} = {value}")
-        print()
-
-# Define paths to the configuration files
-default_config_path = os.path.join('app', 'default.ini')
-user_config_path = 'user_config.ini'
-
-# Create a ConfigParser instance
-config_join = configparser.ConfigParser()
-
-# Read both configurations
-config_join.read([default_config_path, user_config_path])
-
-#test
-#print_config(config_join)
-
-#initialize config settings
-#user_config = configparser.ConfigParser()
-#user_config.read('user_config.ini')
-
-def config(section, key, value_type=str):
-    if value_type == int:
-        return config_join.getint(section, key)
-    elif value_type == float:
-        return config_join.getfloat(section, key)
-    elif value_type == bool:
-        return config_join.getboolean(section, key)
-    else:
-        return config_join.get(section, key)
-
-app_color = config('ui','app_color')
-llm_color = config('ui','llm_color')
-search_color = config('ui','search_color')
-error_color = config('ui','error_color')
-
-#prompt style for prompt_toolkit
-prompt_app_color = app_color.replace("_","")
-prompt_llm_color = llm_color.replace("_","")
-style_search = Style.from_dict({
-    'prompt': f'ansi{prompt_app_color} bold',})
-style_llm = Style.from_dict({
-    'prompt': f'ansi{prompt_llm_color} bold',
-})
+# NOTE: since util.py is imported everywhere I'm misusing
+# it as a kind of global. see the bottom for some all-app
+# variables and initializations. 
 
 def install_path():
     #root path of install
@@ -90,27 +41,175 @@ def print_error(e):
         console.print("\n")
     console.print("\n")
 
-def upgrade_config():
-    # Read the default and user config files
-    default_config = configparser.ConfigParser()
-    default_config.read(default_config_path)
+class ExtendedConfigParser(configparser.ConfigParser):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.optionxform = str  # Preserve case in options
+        self._comment_map = {}
+        self._order_map = {}
 
-    user_config = configparser.ConfigParser()
-    user_config.read(user_config_path)
+    def read(self, filenames, encoding=None):
+        if isinstance(filenames, str):
+            filenames = [filenames]
+        
+        for filename in filenames:
+            with open(filename, 'r', encoding=encoding) as f:
+                self._read_file_with_comments(f, filename)
+        
+        return filenames
 
-    changes_made = False
+    def _read_file_with_comments(self, f, filename):
+        self._comment_map[filename] = {}
+        self._order_map[filename] = {}
+        
+        section = None
+        comment_buffer = []
+        line_number = 0
 
-    # Update user_config with new values from default_config
-    for section in default_config.sections():
-        if section not in user_config:
-            user_config[section] = {}
-            changes_made = True
-        for key, value in default_config[section].items():
-            if key not in user_config[section]:
-                user_config[section][key] = value
-                changes_made = True
+        content = f.read()
+        f.seek(0)
 
-    if changes_made:
-        # Write the updated user config back to the file
-        with open(user_config_path, 'w') as config_file:
-            user_config.write(config_file)
+        for line in f:
+            line_number += 1
+            stripped_line = line.strip()
+
+            if stripped_line.startswith('#'):
+                comment_buffer.append(line)
+            elif stripped_line.startswith('[') and stripped_line.endswith(']'):
+                section = stripped_line[1:-1]
+                if section not in self._comment_map[filename]:
+                    self._comment_map[filename][section] = {}
+                    self._order_map[filename][section] = []
+                if comment_buffer:
+                    self._comment_map[filename][section]['__section__'] = comment_buffer
+                    comment_buffer = []
+            elif '=' in stripped_line:
+                key, _ = stripped_line.split('=', 1)
+                key = key.strip()
+                if section:
+                    if section not in self._order_map[filename]:
+                        self._order_map[filename][section] = []
+                    if comment_buffer:
+                        self._comment_map[filename][section][key] = comment_buffer
+                        comment_buffer = []
+                    self._order_map[filename][section].append(key)
+            elif not stripped_line:
+                if comment_buffer:
+                    comment_buffer.append(line)
+                else:
+                    comment_buffer.append('\n')
+
+        f.seek(0)
+        super().read_file(f)
+
+    def merge_with_defaults(self, default_file, user_file):
+        self.read(default_file)
+        if os.path.exists(user_file):
+            self.read(user_file)
+
+        with open(user_file, 'w') as f:
+            for section in self._sections:
+                if section in self._comment_map[default_file] and '__section__' in self._comment_map[default_file][section]:
+                    f.writelines(self._comment_map[default_file][section]['__section__'])
+                f.write(f'[{section}]\n')
+
+                for key in self._order_map[default_file][section]:
+                    if key in self._comment_map[default_file][section]:
+                        f.writelines(self._comment_map[default_file][section][key])
+                    value = self[section][key]
+                    f.write(f'{key} = {value}\n')
+
+                if section in self._sections and self._sections[section]:
+                    f.write('\n')
+
+    def write(self, fileobject, space_around_delimiters=True):
+        for section in self._sections:
+            fileobject.write(f'[{section}]\n')
+            for key in self._order_map.get(fileobject.name, {}).get(section, []):
+                if key in self._comment_map.get(fileobject.name, {}).get(section, {}):
+                    fileobject.writelines(self._comment_map[fileobject.name][section][key])
+                value = self[section][key]
+                if space_around_delimiters:
+                    fileobject.write(f'{key} = {value}\n')
+                else:
+                    fileobject.write(f'{key}={value}\n')
+            fileobject.write('\n')
+
+def sync_comments_config():
+    # this calls the class above to sync the comments in 
+    # default.ini with user.ini since consoleparser() clears them
+    # on set.
+    user_config_path = 'user_config.ini'
+    default_config_path = os.path.join('app', 'default.ini')
+
+    config = ExtendedConfigParser()
+    config.merge_with_defaults(default_config_path, user_config_path)
+
+
+def config(section, key, value_type=str):
+    # read from both default and user before pulling a value
+    default_config_path = os.path.join('app', 'default.ini')
+    user_config_path = 'user_config.ini'
+    # create a ConfigParser instance
+    config_join = configparser.ConfigParser()
+    # read both configurations
+    config_join.read([default_config_path, user_config_path])
+
+    if value_type == int:
+        return config_join.getint(section, key)
+    elif value_type == float:
+        return config_join.getfloat(section, key)
+    elif value_type == bool:
+        return config_join.getboolean(section, key)
+    else:
+        return config_join.get(section, key)
+
+def set_config(section, key, value):
+    user_config_path = 'user_config.ini'
+    config = configparser.ConfigParser()
+    
+    # read the existing config file if it exists
+    if os.path.exists(user_config_path):
+        config.read(user_config_path)
+    
+    # ensure the section exists
+    if section not in config:
+        config[section] = {}
+    
+    # set the new value
+    config[section][key] = str(value)
+    
+    # write the updated config back to the file
+    with open(user_config_path, 'w') as configfile:
+        config.write(configfile)
+
+    # sync with default to bring back comments
+    sync_comments_config()
+
+    #use like
+    #set_config('image', 'gen_img_width', '1024')
+
+
+##############################################
+################FAKE GLOBALS##################
+##############################################
+
+#initialize rich console
+console = Console()
+#initialize prompt toolkit
+session = PromptSession(history=InMemoryHistory())
+
+# set some colors from config
+app_color = config('ui','app_color')
+llm_color = config('ui','llm_color')
+search_color = config('ui','search_color')
+error_color = config('ui','error_color')
+
+# prompt style for prompt_toolkit
+prompt_app_color = app_color.replace("_","")
+prompt_llm_color = llm_color.replace("_","")
+style_search = Style.from_dict({
+    'prompt': f'ansi{prompt_app_color} bold',})
+style_llm = Style.from_dict({
+    'prompt': f'ansi{prompt_llm_color} bold',
+})
