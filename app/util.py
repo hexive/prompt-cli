@@ -186,9 +186,6 @@ def set_config(section, key, value):
     # sync with default to bring back comments
     sync_comments_config()
 
-    #use like
-    #set_config('image', 'gen_img_width', '1024')
-
 
 ##############################################
 ################FAKE GLOBALS##################
