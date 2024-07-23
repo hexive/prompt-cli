@@ -4,8 +4,6 @@ import image
 import search
 import llm
 
-from config import *
-
 from preflight import preflight
 from util import *
 
@@ -23,7 +21,8 @@ def print_help_message():
     console.print("'/1': Generate image from number prompt (/1,/54,etc)", style=f"{app_color}")
     console.print("'/random': Generate random image from search results", style=f"{app_color}")
     console.print("'/new': Llama creates a new prompt based on search", style=f"{app_color}")
-    console.print("'/load': List and load image checkpoint models", style=f"{app_color}")    
+    console.print("'/load': List and load image checkpoint models", style=f"{app_color}")
+    console.print("'/aspect': Select some common aspect ratios", style=f"{app_color}")     
 
     console.print("\nSystem:", style=f"bold {app_color}")
     console.print("'/quit': Exit the program", style=f"{app_color}")
@@ -34,7 +33,8 @@ def print_help_message():
 
 #special command handling
 class Command(Enum):
-    ASK = auto() 
+    ASPECT = auto() 
+    CHAT = auto() 
     CONTINUE = auto()
     EXIT = auto()
     FILTER = auto()
@@ -50,7 +50,8 @@ class Command(Enum):
     UNKNOWN = auto()
 
 COMMAND_MAPPINGS = {
-    'ask': (['/ask', '/a', '/chat', '/c'], Command.ASK),
+    'aspect': (['/aspect', '/a'], Command.ASPECT),
+    'chat': (['/chat', '/c'], Command.CHAT),
     'exit': (['/bye', '/b', '/q', '/quit', '/e', '/exit'], Command.EXIT),
     'filter': (['/filter', '/f'], Command.FILTER),
     'help': (['/help', '/h'], Command.HELP),
@@ -72,6 +73,16 @@ def handle_special_commands(user_input):
                 if command_enum == Command.FILTER:
                     keywords = user_input[len(alias):].strip()
                     return command_enum, keywords
+                elif command_enum == Command.ASPECT:
+                    args = lower_input[len(alias):].strip()
+                    if args:
+                        try:
+                            aspect_number = int(args)
+                            return command_enum, aspect_number
+                        except ValueError:
+                            return Command.UNKNOWN
+                    else:
+                        return command_enum, None
                 elif command_enum == Command.LOAD:
                     args = lower_input[len(alias):].strip()
                     if args:
@@ -111,13 +122,13 @@ def interactive_chat():
     current_page = 1
     prompt_text = ""
     filter_text = ""
-    ask_loop = False
+    chat_loop = False
     neural_searcher = search.NeuralSearcher(collection_name="prompts_large_meta")
 
             
     while True:
 
-        if ask_loop:
+        if chat_loop:
             user_input = session.prompt("Chat with Llama about the results: ", style=style_llm)
         else:
             user_input = session.prompt("Enter new search terms or another command: ", style=style_search)
@@ -132,6 +143,12 @@ def interactive_chat():
             if command[0] == Command.NUMERIC:
                 command_type, number = command
                 image.prepare_image(documents, number=number)
+            elif command[0] == Command.ASPECT:
+                command_type, aspect_number = command
+                if aspect_number is not None:
+                    image.change_aspect(aspect_number)
+                else:
+                    image.list_aspect()
             elif command[0] == Command.FILTER:
                 command_type, keywords = command
                 filter_text = keywords
@@ -155,10 +172,9 @@ def interactive_chat():
                 else:
                     console.print("\nclever girl! but no.\n--that's not a page number for these results.\n\n", style=f"bold {error_color}")
 
-        elif command == Command.ASK:
-            #ask_loop = not ask_loop
+        elif command == Command.CHAT:
             if llm.preflight(documents):
-                ask_loop = True
+                chat_loop = True
 
         elif command == Command.EXIT:
             return False
@@ -183,7 +199,7 @@ def interactive_chat():
             image.prepare_image(documents, number=number)
 
         elif command == Command.SEARCH:
-            ask_loop = False
+            chat_loop = False
 
         elif command == Command.WIPE:
             os.system('cls' if os.name == 'nt' else 'clear')
@@ -194,7 +210,7 @@ def interactive_chat():
             
         else:
             # If it's not a command, treat it as new search / chat terms
-            if ask_loop:
+            if chat_loop:
                 query = user_input
                 response = llm.prepare_response(documents, query)
                 if response is not False: 

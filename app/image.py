@@ -12,6 +12,52 @@ from util import *
 #####################  IMAGES  ########################
 #######################################################
 
+def get_aspect_ratios():
+    aspect_ratios = {
+    "512x768": "Portrait",
+    "768x512": "Landscape",
+    "768x768": "Square",
+    "768x1024": "Portrait",
+    "1024x768": "Landscape",
+    "1024x1024": "Square",
+    }
+    return aspect_ratios
+
+def list_aspect():
+    aspect_ratios = get_aspect_ratios()
+    width=config('image','gen_img_width',int)
+    height=config('image','gen_img_height',int)
+    current_ratio = f"{width}x{height}"
+
+    console.print(f"\nCurrently using '{width}x{height}'",style=f"{app_color} bold")
+    console.print("\nSD1 Training Resolutions",style=f"{app_color} bold")
+
+    for index, (ratio, description) in enumerate(aspect_ratios.items(), 1):
+        label = f"{index}. '{description} {ratio}'" if current_ratio == ratio else f"{index}. {description} {ratio}"
+        console.print(label, style=f"{app_color}")
+
+        if index == 3:  # After the third item
+            console.print("\nSDXL / SD3 Training Resolutions",style=f"{app_color} bold")
+
+    console.print(f"\nTo change enter '/aspect 6', for example.\n",style=f"{app_color}")
+
+def change_aspect(number):
+    aspect_ratios = get_aspect_ratios()
+    choice = number - 1
+    ratios = list(aspect_ratios.keys())
+    
+    if 0 <= choice < len(aspect_ratios):
+        selected_ratio = ratios[choice]
+        width, height = map(int, selected_ratio.split('x'))
+        
+        set_config('image', 'gen_img_width', width)
+        set_config('image', 'gen_img_height', height)
+        
+        console.print("\nSuccess! we set new aspect for image generation.\n",style=f"")
+
+    else:
+        console.print("\nINVALID! I really question your choices sometimes.\n", style=f"{error_color}")
+
 def list_models():
 
     # Define the URL and the payload to send.
@@ -60,13 +106,10 @@ def change_model(number):
         
         if response.status_code == 200:
             console.print("\nSuccess! the new image model is loaded.\n",style=f"")
-            #validatw with ne?
         else:
             console.print(f"\nSomething went wrong with the model change. Try again?\n", style=f"{error_color}")
     else:
         console.print("\nINVALID! I really question your choices sometimes.\n", style=f"{error_color}")
-
- 
 
 def prepare_image(documents, number=None, llm_prompt=None):
     # verify automatic1111 is up  
