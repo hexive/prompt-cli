@@ -21,7 +21,7 @@ Check the [wiki](https://github.com/hexive/prompt-cli/wiki) for full documentati
 
 ## Backstory
 
-Um, what? long story short -- the [prompt quil](https://github.com/osi1880vr/prompt_quill) creator compiled a gigantic list of 3.5 million image prompts from public sources (mostly civitai), encoded them, and threw them into a vector database (qdrant). He built a whole gradio site around it that does tons of cool stuff -- you should definitely check it out.
+Um, what? long story short -- the [prompt quill](https://github.com/osi1880vr/prompt_quill) creator compiled a gigantic list of 3.5 million image prompts from public sources (mostly civitai), encoded them, and threw them into a vector database (qdrant). He built a whole gradio site around it that does tons of cool stuff -- you should definitely check it out.
 
 **prompt-cli** is a more minimal, lightweight and free flowing interaction with the database. You can vector search the 3.5 million promps, filter them by keyword, automatically generate stable-diffusion images from the results -- all from the comfort of your terminal. You can also fire up the llm and chat with it about your results. "what are the names of all the artists used?" or "count how many female vs male characters?" or "create a new image prompt based on the style and themes from this context" etc.
 
